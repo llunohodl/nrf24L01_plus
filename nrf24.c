@@ -251,10 +251,8 @@ void nrf24_powerUpRx()
     nrf24_ce_digitalWrite(HIGH);
 }
 
-void nrf24_powerUpTx()
-{
+void nrf24_powerUpTx(){
     nrf24_configRegister(STATUS,(1<<RX_DR)|(1<<TX_DS)|(1<<MAX_RT)); 
-
     nrf24_configRegister(CONFIG,nrf24_CONFIG|((1<<PWR_UP)|(0<<PRIM_RX)));
 }
 
@@ -265,8 +263,10 @@ void nrf24_powerDown()
 }
 
 /* software spi routine */
+#ifndef spi_transfer
 uint8_t spi_transfer(uint8_t tx)
 {
+
     uint8_t i = 0;
     uint8_t rx = 0;    
 
@@ -298,6 +298,7 @@ uint8_t spi_transfer(uint8_t tx)
 
     return rx;
 }
+#endif 
 
 /* send and receive multiple bytes over SPI */
 void nrf24_transferSync(uint8_t* dataout,uint8_t* datain,uint8_t len)

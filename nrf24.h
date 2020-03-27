@@ -58,7 +58,9 @@ void    nrf24_powerUpTx();
 void    nrf24_powerDown();
 
 /* low level interface ... */
-uint8_t spi_transfer(uint8_t tx);
+//uint8_t spi_transfer(uint8_t tx);
+uint8_t nrf24_spi_transfer(uint8_t tx);
+#define spi_transfer(tx) nrf24_spi_transfer(tx)
 void    nrf24_transmitSync(uint8_t* dataout,uint8_t len);
 void    nrf24_transferSync(uint8_t* dataout,uint8_t* datain,uint8_t len);
 void    nrf24_configRegister(uint8_t reg, uint8_t value);
