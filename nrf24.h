@@ -29,8 +29,8 @@
 // 2 Mbps, TX gain: -18dbm
 #define nrf24_RFsetup (1<<RF_DR)|((0x00)<<RF_PWR)
 
-#define nrf24_IRQ_RX  (1<<MASK_RX_DR)
-#define nrf24_IRQ_TX  (1<<MASK_TX_DS)
+#define nrf24_IRQ_RX  (1<<MASK_TX_DS)|(1<<MASK_MAX_RT)
+#define nrf24_IRQ_TX  (1<<MASK_RX_DR)|(1<<MASK_MAX_RT)
 
 #define NRF24_TRANSMISSON_OK 0
 #define NRF24_MESSAGE_LOST   1
@@ -123,5 +123,11 @@ extern void nrf24_mosi_digitalWrite(uint8_t state);
 /* - returns: Non-zero if the pin is high */
 /* -------------------------------------------------------------------------- */
 extern uint8_t nrf24_miso_digitalRead();
+
+/* -------------------------------------------------------------------------- */
+/* nrf24 IRQ pin read function
+/* - returns: Non-zero if the pin is low */
+/* -------------------------------------------------------------------------- */
+extern uint8_t nrf24_irq_digitalRead();
 
 #endif

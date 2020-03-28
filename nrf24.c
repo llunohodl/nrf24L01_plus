@@ -73,6 +73,12 @@ void nrf24_tx_address(uint8_t* adr){
 /* Checks if data is available for reading */
 /* Returns 1 if data is ready ... */
 uint8_t nrf24_dataReady() {
+    //#if nrf24_IRQ_RX!=0
+    if(nrf24_irq_digitalRead()){
+       return !nrf24_rxFifoEmpty();
+    }
+    return 0;
+    //#endif
     // See note in getData() function - just checking RX_DR isn't good enough
     uint8_t status = nrf24_getStatus();
     // We can short circuit on RX_DR, but if it's not set, we still need
@@ -80,7 +86,7 @@ uint8_t nrf24_dataReady() {
     if ( status & (1 << RX_DR) ) {
         return 1;
     }
-    return !nrf24_rxFifoEmpty();;
+    return !nrf24_rxFifoEmpty();
 }
 
 /* Checks if receive FIFO is empty or not */
@@ -188,15 +194,13 @@ void nrf24_powerUpRx(){
     nrf24_csn_digitalWrite(HIGH);
     nrf24_configRegister(STATUS,(1<<RX_DR)|(1<<TX_DS)|(1<<MAX_RT)); 
     nrf24_ce_digitalWrite(LOW);    
-    nrf24_configRegister(CONFIG,
-                         nrf24_CONFIG|((1<<PWR_UP)|(1<<PRIM_RX))|nrf24_IRQ_RX);    
+    nrf24_configRegister(CONFIG,nrf24_CONFIG|((1<<PWR_UP)|(1<<PRIM_RX)));    
     nrf24_ce_digitalWrite(HIGH);
 }
 
 void nrf24_powerUpTx(){
     nrf24_configRegister(STATUS,(1<<RX_DR)|(1<<TX_DS)|(1<<MAX_RT)); 
-    nrf24_configRegister(CONFIG,
-                         nrf24_CONFIG|((1<<PWR_UP)|(0<<PRIM_RX))|nrf24_IRQ_TX);
+    nrf24_configRegister(CONFIG,nrf24_CONFIG|((1<<PWR_UP)|(0<<PRIM_RX)));
 }
 
 void nrf24_powerDown(){
