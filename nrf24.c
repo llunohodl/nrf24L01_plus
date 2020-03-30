@@ -43,8 +43,8 @@ void nrf24_config(uint8_t channel, uint8_t pay_length){
     nrf24_configRegister(EN_AA,(1<<ENAA_P0)|(1<<ENAA_P1)|(0<<ENAA_P2)|(0<<ENAA_P3)|(0<<ENAA_P4)|(0<<ENAA_P5));
     // Enable RX addresses
     nrf24_configRegister(EN_RXADDR,(1<<ERX_P0)|(1<<ERX_P1)|(0<<ERX_P2)|(0<<ERX_P3)|(0<<ERX_P4)|(0<<ERX_P5));
-    // Auto retransmit delay: 1000 us and Up to 15 retransmit trials
-    nrf24_configRegister(SETUP_RETR,(0x04<<ARD)|(0x0F<<ARC));
+    // Auto retransmit delay: 1000 us and Up to 3 retransmit trials
+    nrf24_configRegister(SETUP_RETR,(0x04<<ARD)|(nrf24_ART<<ARC));
     // Dynamic length configurations: No dynamic length
     nrf24_configRegister(DYNPD,(0<<DPL_P0)|(0<<DPL_P1)|(0<<DPL_P2)|(0<<DPL_P3)|(0<<DPL_P4)|(0<<DPL_P5));
     // Start listening
@@ -73,12 +73,11 @@ void nrf24_tx_address(uint8_t* adr){
 /* Checks if data is available for reading */
 /* Returns 1 if data is ready ... */
 uint8_t nrf24_dataReady() {
-    //#if nrf24_IRQ_RX!=0
     if(nrf24_irq_digitalRead()){
        return !nrf24_rxFifoEmpty();
     }
     return 0;
-    //#endif
+#if 0
     // See note in getData() function - just checking RX_DR isn't good enough
     uint8_t status = nrf24_getStatus();
     // We can short circuit on RX_DR, but if it's not set, we still need
@@ -87,6 +86,7 @@ uint8_t nrf24_dataReady() {
         return 1;
     }
     return !nrf24_rxFifoEmpty();
+#endif
 }
 
 /* Checks if receive FIFO is empty or not */
@@ -154,6 +154,14 @@ void nrf24_send(uint8_t* value) {
 }
 
 uint8_t nrf24_isSending(){
+    if(nrf24_irq_digitalRead()){
+       uint8_t status = nrf24_getStatus();
+       if((status & ((1 << TX_DS)  | (1 << MAX_RT)))){        
+          return 0; /* false */
+       }
+    }
+    return 1; /* true */
+#if 0
     uint8_t status;
     /* read the current status */
     status = nrf24_getStatus();       
@@ -162,6 +170,7 @@ uint8_t nrf24_isSending(){
         return 0; /* false */
     }
     return 1; /* true */
+#endif
 }
 
 uint8_t nrf24_getStatus(){
@@ -194,13 +203,17 @@ void nrf24_powerUpRx(){
     nrf24_csn_digitalWrite(HIGH);
     nrf24_configRegister(STATUS,(1<<RX_DR)|(1<<TX_DS)|(1<<MAX_RT)); 
     nrf24_ce_digitalWrite(LOW);    
-    nrf24_configRegister(CONFIG,nrf24_CONFIG|((1<<PWR_UP)|(1<<PRIM_RX)));    
+    //Power up RX and disable TX IRQ
+    nrf24_configRegister(CONFIG,nrf24_CONFIG|(1<<PWR_UP)|(1<<PRIM_RX)
+                         |(1<<MASK_TX_DS)|(1<<MASK_MAX_RT));    
     nrf24_ce_digitalWrite(HIGH);
 }
 
 void nrf24_powerUpTx(){
     nrf24_configRegister(STATUS,(1<<RX_DR)|(1<<TX_DS)|(1<<MAX_RT)); 
-    nrf24_configRegister(CONFIG,nrf24_CONFIG|((1<<PWR_UP)|(0<<PRIM_RX)));
+    //Power up TX and disable RX IRQ
+    nrf24_configRegister(CONFIG,nrf24_CONFIG|(1<<PWR_UP)|(0<<PRIM_RX)
+                         |(1<<MASK_RX_DR));
 }
 
 void nrf24_powerDown(){
