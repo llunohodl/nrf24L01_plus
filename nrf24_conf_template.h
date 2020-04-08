@@ -6,7 +6,7 @@
 
 
 #define nrf24_CONFIG ((1<<EN_CRC)|(0<<CRCO))
-#define nrf24_ART 3 //retransmit trials
+#define nrf24_ART 3 //retransmit trials up to 15
 
 // 1 Mbps, TX gain: 0dbm
 //#define nrf24_RFsetup (0<<RF_DR)|((0x03)<<RF_PWR)

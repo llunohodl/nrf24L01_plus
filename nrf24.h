@@ -29,6 +29,7 @@
 void    nrf24_init();
 void    nrf24_rx_address(uint8_t* adr);
 void    nrf24_tx_address(uint8_t* adr);
+// channel 0..128 | pay_length 1..32
 void    nrf24_config(uint8_t channel, uint8_t pay_length);
 
 /* state check functions */

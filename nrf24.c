@@ -22,7 +22,8 @@ void nrf24_init() {
     nrf24_csn_digitalWrite(HIGH);    
 }
 
-/* configure the module */
+/* configure the module 
+ * channel 0..128 | pay_length 1..32 */
 void nrf24_config(uint8_t channel, uint8_t pay_length){
     /* Use static payload length ... */
     payload_len = pay_length;
