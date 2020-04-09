@@ -13,6 +13,7 @@
 
 // 2 Mbps, TX gain: -18dbm
 #define nrf24_RFsetup (1<<RF_DR)|((0x00)<<RF_PWR)
+#define nrf24_use_irq 0
 
 /* low level interface ... */
 //uint8_t spi_transfer(uint8_t tx);

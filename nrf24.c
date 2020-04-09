@@ -74,11 +74,12 @@ void nrf24_tx_address(uint8_t* adr){
 /* Checks if data is available for reading */
 /* Returns 1 if data is ready ... */
 uint8_t nrf24_dataReady() {
+#if nrf24_use_irq>0
     if(nrf24_irq_digitalRead()){
        return !nrf24_rxFifoEmpty();
     }
     return 0;
-#if 0
+#else
     // See note in getData() function - just checking RX_DR isn't good enough
     uint8_t status = nrf24_getStatus();
     // We can short circuit on RX_DR, but if it's not set, we still need
@@ -155,6 +156,7 @@ void nrf24_send(uint8_t* value) {
 }
 
 uint8_t nrf24_isSending(){
+#if nrf24_use_irq>0
     if(nrf24_irq_digitalRead()){
        uint8_t status = nrf24_getStatus();
        if((status & ((1 << TX_DS)  | (1 << MAX_RT)))){        
@@ -162,10 +164,8 @@ uint8_t nrf24_isSending(){
        }
     }
     return 1; /* true */
-#if 0
-    uint8_t status;
-    /* read the current status */
-    status = nrf24_getStatus();       
+#else
+    uint8_t status = nrf24_getStatus();       
     /* if sending successful (TX_DS) or max retries exceded (MAX_RT). */
     if((status & ((1 << TX_DS)  | (1 << MAX_RT)))){        
         return 0; /* false */
@@ -205,16 +205,24 @@ void nrf24_powerUpRx(){
     nrf24_configRegister(STATUS,(1<<RX_DR)|(1<<TX_DS)|(1<<MAX_RT)); 
     nrf24_ce_digitalWrite(LOW);    
     //Power up RX and disable TX IRQ
+    #if nrf24_use_irq>0
     nrf24_configRegister(CONFIG,nrf24_CONFIG|(1<<PWR_UP)|(1<<PRIM_RX)
-                         |(1<<MASK_TX_DS)|(1<<MASK_MAX_RT));    
+                         |(1<<MASK_TX_DS)|(1<<MASK_MAX_RT));   
+    #else
+    nrf24_configRegister(CONFIG,nrf24_CONFIG|(1<<PWR_UP)|(1<<PRIM_RX));   
+    #endif
     nrf24_ce_digitalWrite(HIGH);
 }
 
 void nrf24_powerUpTx(){
     nrf24_configRegister(STATUS,(1<<RX_DR)|(1<<TX_DS)|(1<<MAX_RT)); 
     //Power up TX and disable RX IRQ
+    #if nrf24_use_irq>0
     nrf24_configRegister(CONFIG,nrf24_CONFIG|(1<<PWR_UP)|(0<<PRIM_RX)
                          |(1<<MASK_RX_DR));
+    #else
+    nrf24_configRegister(CONFIG,nrf24_CONFIG|(1<<PWR_UP)|(0<<PRIM_RX));  
+    #endif
 }
 
 void nrf24_powerDown(){
